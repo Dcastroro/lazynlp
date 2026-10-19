@@ -3,6 +3,7 @@ import importlib
 import io
 import tempfile
 import unittest
+from collections import namedtuple
 from pathlib import Path
 from unittest.mock import patch
 
@@ -34,8 +35,10 @@ class DownloadFiltersTest(unittest.TestCase):
             'https://custom.test/keep.html': ('', 'custom', 'test'),
             'https://example.test/file.custom': ('', 'example', 'test'),
         }
+        extracted = namedtuple('Extracted', 'subdomain domain suffix')
         self.resources.enter_context(
-            patch.object(crawl.tldextract, 'extract', side_effect=domains.__getitem__)
+            patch.object(crawl.tldextract, 'extract',
+                         side_effect=lambda url: extracted(*domains[url]))
         )
         self.resources.enter_context(
             patch.object(crawl.urllib.request, 'urlopen', side_effect=AssertionError('Unexpected network call'))
